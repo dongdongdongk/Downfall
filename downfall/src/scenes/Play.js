@@ -36,7 +36,6 @@ class Play extends Phaser.Scene {
     }
 
     getPlayerZones(playerZonesLayer) {
-        debugger
         const playerZones = playerZonesLayer.objects;
         return {
             start: playerZones.find((zone) => zone.name === "startZone"),

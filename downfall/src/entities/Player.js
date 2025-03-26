@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, x, y, "player");
+        super(scene, x, y, "test_player");
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
@@ -61,7 +61,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             isSpaceJustDown &&
             (onFloor || this.jumpCount < this.consecutiveJumps)
         ) {
-            this.jumpSound.play();
             this.setVelocityY(this.jumpSpeed);
             this.jumpCount++;
         }
