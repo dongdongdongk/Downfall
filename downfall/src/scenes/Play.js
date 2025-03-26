@@ -13,6 +13,12 @@ class Play extends Phaser.Scene {
 
         const playerZones = this.getPlayerZones(layers.playerZones);
         const player = this.createPlayer(playerZones.start);
+
+        this.createPlayerColliders(player, {
+            colliders: {
+                platformsColliders: layers.test_layer,
+            },
+        });
     }
 
 
@@ -41,6 +47,11 @@ class Play extends Phaser.Scene {
             start: playerZones.find((zone) => zone.name === "startZone"),
             end: playerZones.find((zone) => zone.name === "endZone"),
         };
+    }
+
+    createPlayerColliders(player, { colliders }) {
+        player
+            .addColliders(colliders.platformsColliders)
     }
 }
 
