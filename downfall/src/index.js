@@ -3,11 +3,11 @@ import PreloadScene from "./scenes/Preload";
 import PlayScene from './scenes/Play';
 
 // 1. 맵 크기 설정
-const mapWidth = 1200;
+const mapWidth = 4000;
 
 // 2. 브라우저 크기에 맞춰 캔버스 크기 설정
 const width = document.body.offsetWidth; 
-const height = 600;
+const height = 800;
 const zoomFactor = 1;
 
 // 3. 오프셋 계산 (보이지 않는 영역 크기)
