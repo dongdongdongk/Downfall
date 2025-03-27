@@ -8,7 +8,7 @@ const mapWidth = 4000;
 // 2. 브라우저 크기에 맞춰 캔버스 크기 설정
 const width = document.body.offsetWidth; 
 const height = 800;
-const zoomFactor = 1;
+const zoomFactor = 1.5;
 
 // 3. 오프셋 계산 (보이지 않는 영역 크기)
 const mapOffset = mapWidth - width;
@@ -18,7 +18,7 @@ const SHARED_CONFIG = {
   width: width,
   height: height,
   zoomFactor: zoomFactor,
-  debug : true,
+  debug : false,
   leftTopCorner: {
     x: (width - (width / zoomFactor)) / 2,
     y: (height - (height / zoomFactor)) / 2

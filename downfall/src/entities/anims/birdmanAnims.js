@@ -20,4 +20,11 @@ export default anims => {
         frameRate: 10,
         repeat: 0,
     })
+
+    anims.create({
+        key: 'birdman-attack',
+        frames: anims.generateFrameNumbers('birdman', { start: 13, end: 22}),
+        frameRate: 10,
+        repeat: 0,
+    })
 }

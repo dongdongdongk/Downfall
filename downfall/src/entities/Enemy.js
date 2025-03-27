@@ -20,6 +20,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
     init() {
         this.gravity = 800;
         this.speed = 50;
+        this.jumpPower = -250;
         this.chaseSpeed = 120   ;
         this.timeFromLastTrun = 250;
         this.maxPatrolDistance = 600;
@@ -43,7 +44,10 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.isStopped = false;
         this.stopTime = 0;
         this.stopDuration = 1000;
-        this.detectionRange = 200; // 감지 범위 추가 (기본값 설정)
+        this.detectionRange = 400; // 감지 범위 추가 (기본값 설정)
+        this.jumpRandom = 3;
+        this.jumpCount = 0; // 점프 횟수 추적
+        this.maxJumpCount = 1; // 최대 점프 횟수 (1로 설정)
         this.rayGraphics = this.scene.add.graphics({
             lineStyle: { width: 2, color: 0xaa00aa }
         });
@@ -63,6 +67,11 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.rayGraphics.clear();
             this.destroy();
             return;
+        }
+
+        // 착지 시 점프 횟수 초기화
+        if (this.body.onFloor()) {
+            this.jumpCount = 0;
         }
 
         this.patrol(time);
@@ -106,29 +115,31 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             console.warn("플레이어가 설정되지 않았습니다.");
             return;
         }
-
+    
         const { rayFar, hasHitFar } = this.checkPlayerRaycast(this.body, this.player, {
             raylength: this.detectionRange
         });
-
+    
         if (this.config.debug) {
             this.rayGraphicsFar.clear();
             this.rayGraphicsFar.strokeLineShape(rayFar);
         }
-
+    
         if (hasHitFar) {
             if (!this.isPlayerDetected) {
                 console.log("플레이어 감지됨! 추적 시작.");
                 this.isPlayerDetected = true;
                 this.isChasing = true;
                 this.isStopped = false;
-                this.chaseStartTime = time;
+                this.chaseStartTime = time; // 최초 감지 시 타이머 설정
+            } else if (this.isChasing) {
+                this.chaseStartTime = time; // 플레이어가 계속 감지되면 타이머 갱신
             }
         } else if (this.isPlayerDetected) {
             console.log("플레이어 감지 해제됨!");
             this.isPlayerDetected = false;
         }
-
+    
         if (this.isChasing) {
             if (time > this.chaseStartTime + this.chaseDuration) {
                 console.log("추적 시간 종료! 멈춤.");
@@ -143,21 +154,35 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     chasePlayer() {
-        if (!this.player || !this.body || !this.body.onFloor()) {
+        if (!this.player || !this.body) {
             return;
         }
 
         const playerX = this.player.x;
         const enemyX = this.x;
+        const playerY = this.player.y;
+        const enemyY = this.y;
+        const jumpRandom = this.jumpRandom
 
         if (playerX < enemyX) {
             this.setVelocityX(-this.chaseSpeed);
             this.setFlipX(true);
             this.chaseDirection = -1; // 추적 방향 업데이트
+        
         } else if (playerX > enemyX) {
             this.setVelocityX(this.chaseSpeed);
             this.setFlipX(false);
             this.chaseDirection = 1; // 추적 방향 업데이트
+        }
+
+        // 점프 조건: 최대 점프 횟수 미만일 때
+        if (playerY < enemyY - 20 && this.jumpCount < this.maxJumpCount) {
+            const jumpChance = Phaser.Math.Between(0, 100);
+            if (jumpChance < jumpRandom) {
+                this.setVelocityY(this.jumpPower);
+                this.jumpCount += 1; // 점프 횟수 증가
+                console.log("적 점프! 점프 횟수:", this.jumpCount);
+            }
         }
     }
 
@@ -210,6 +235,10 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     setPlayer(player) {
         this.player = player;
+    }
+
+    attack() {
+        console.log('attack')
     }
 
     takesHit(source) {
