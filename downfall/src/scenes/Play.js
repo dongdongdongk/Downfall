@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import Player from '../entities/Player'
+import Enemies from "../groups/Enemies";
 
 class Play extends Phaser.Scene {
     constructor(config) {
@@ -13,12 +14,20 @@ class Play extends Phaser.Scene {
 
         const playerZones = this.getPlayerZones(layers.playerZones);
         const player = this.createPlayer(playerZones.start);
+        const enemies = this.createEnemies(layers.enemySpawns, layers.test_layer, player);
         this.createBackgrounds(map);
         this.setupFollowupCameraOn(player);
 
         this.createPlayerColliders(player, {
             colliders: {
                 platformsColliders: layers.test_layer,
+            },
+        });
+
+        this.createEnemyColliders(enemies, {
+            colliders: {
+                platformsColliders: layers.test_layer,
+                player,
             },
         });
     }
@@ -35,10 +44,11 @@ class Play extends Phaser.Scene {
         const tileset = map.getTileset("main_lev_build_1");
         const test_layer = map.createStaticLayer('test_layer', tileset)
         const playerZones = map.getObjectLayer("player_zones");
+        const enemySpawns = map.getObjectLayer("enemy_spawns");
 
         test_layer.setCollisionByExclusion(-1, true);
 
-        return { test_layer, playerZones };
+        return { test_layer, playerZones, enemySpawns };
     }
 
     createPlayer(start) {
@@ -56,6 +66,12 @@ class Play extends Phaser.Scene {
     createPlayerColliders(player, { colliders }) {
         player
             .addColliders(colliders.platformsColliders)
+    }
+
+    createEnemyColliders(enemies, { colliders }) {
+        enemies
+            .addColliders(colliders.platformsColliders)
+            .addColliders(colliders.player, this.onPlayerCollision)
     }
 
 
@@ -78,16 +94,31 @@ class Play extends Phaser.Scene {
         const { height, width, mapOffset, zoomFactor } = this.config;
         
         // 1. 게임 전체 맵의 물리적 한계를 설정
-        debugger
         this.physics.world.setBounds(0, 0, width + mapOffset, height);
     
         // 2. 카메라가 이동할 수 있는 영역을 설정
-        debugger
         this.cameras.main.setBounds(0, 0, width + mapOffset, height)
                          .setZoom(zoomFactor); // 줌(확대) 설정 추가
     
         // 3. 카메라가 플레이어를 따라가도록 설정
         this.cameras.main.startFollow(player);
+    }
+
+
+    createEnemies(spawnLayer, platformsColliders, player) {
+        const enemies = new Enemies(this);
+        const enemyTypes = enemies.getTypes();
+
+        spawnLayer.objects.forEach((spawnPoint) => {
+            // if(i === 1) {
+            //     return
+            // }
+            const enemy = new enemyTypes[spawnPoint.type](this, spawnPoint.x, spawnPoint.y);
+            enemy.setPlatformColliders(platformsColliders)
+            enemy.setPlayer(player)
+            enemies.add(enemy);
+        })
+        return enemies;
     }
 
     update() {

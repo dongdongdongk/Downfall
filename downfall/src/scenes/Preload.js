@@ -13,6 +13,9 @@ class Preload extends Phaser.Scene {
 
         this.load.image("mountain_tile", "./assets/mountain.png");
 
+
+        this.load.spritesheet('birdman', 'assets/enemy/enemy_sheet.png', { frameWidth: 32, frameHeight: 64, spacing: 32 });
+
         this.load.once('complete', () => {
             this.startGame()
         })
