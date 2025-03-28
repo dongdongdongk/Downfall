@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import collidable from "../mixins/collidable";
 import anims from "../mixins/anims";
+import MeleeWeapon from "../attacks/MeleeWeapon";
 
 class Enemy extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, key) {
@@ -21,7 +22,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.gravity = 800;
         this.speed = 50;
         this.jumpPower = -250;
-        this.chaseSpeed = 120   ;
+        this.chaseSpeed = 150;
         this.timeFromLastTrun = 250;
         this.maxPatrolDistance = 600;
         this.currentPatrolDistance = 0;
@@ -48,6 +49,12 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.jumpRandom = 3;
         this.jumpCount = 0; // 점프 횟수 추적
         this.maxJumpCount = 1; // 최대 점프 횟수 (1로 설정)
+        this.attackAnimKey = 'default-attack'; // 기본 공격 애니메이션 키 (자식 클래스에서 오버라이드)
+
+        this.attackDuration = 500; // 기본 공격 지속 시간 (자식 클래스에서 오버라이드 가능)
+        this.attackEndTime = 0; // 공격 종료 시간
+
+        this.meleeWeapon = new MeleeWeapon(this.scene, 0, 0, this.attackAnimKey);
         this.rayGraphics = this.scene.add.graphics({
             lineStyle: { width: 2, color: 0xaa00aa }
         });
@@ -83,6 +90,15 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityX(this.speed * this.chaseDirection); // 추적 방향으로 순찰 재개
             this.setFlipX(this.chaseDirection < 0);
         }
+
+        // 공격 타이머 체크
+        if (this.attackEndTime > 0 && time >= this.attackEndTime) {
+            this.meleeWeapon.activateWeapon(false);
+            this.meleeWeapon.body.checkCollision.none = false;
+            this.meleeWeapon.body.reset(0, 0);
+            console.log('Melee weapon deactivated after timeout (Enemy)');
+            this.attackEndTime = 0;
+        }
     }
 
     patrol(time) {
@@ -110,21 +126,26 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
+    attack(time) {
+        this.meleeWeapon.swing(this);
+        this.attackEndTime = time + this.attackDuration; // 공격 종료 시간 설정
+    }
+
     playerRaycast(time) {
         if (!this.player) {
             console.warn("플레이어가 설정되지 않았습니다.");
             return;
         }
-    
+
         const { rayFar, hasHitFar } = this.checkPlayerRaycast(this.body, this.player, {
             raylength: this.detectionRange
         });
-    
+
         if (this.config.debug) {
             this.rayGraphicsFar.clear();
             this.rayGraphicsFar.strokeLineShape(rayFar);
         }
-    
+
         if (hasHitFar) {
             if (!this.isPlayerDetected) {
                 console.log("플레이어 감지됨! 추적 시작.");
@@ -139,7 +160,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             console.log("플레이어 감지 해제됨!");
             this.isPlayerDetected = false;
         }
-    
+
         if (this.isChasing) {
             if (time > this.chaseStartTime + this.chaseDuration) {
                 console.log("추적 시간 종료! 멈춤.");
@@ -168,7 +189,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityX(-this.chaseSpeed);
             this.setFlipX(true);
             this.chaseDirection = -1; // 추적 방향 업데이트
-        
+
         } else if (playerX > enemyX) {
             this.setVelocityX(this.chaseSpeed);
             this.setFlipX(false);
@@ -237,9 +258,6 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.player = player;
     }
 
-    attack() {
-        console.log('attack')
-    }
 
     takesHit(source) {
         source.deliversHit(this);
