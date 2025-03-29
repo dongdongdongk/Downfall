@@ -18,7 +18,19 @@ class Orc extends Enemy {
         this.attackEndTime = 0; // 공격이 끝나는 시간
         this.attackCooldown = 600; // 공격 쿨다운 (1초)
         this.lastAttackTime = 0; // 마지막 공격 시간
-        this.attackDelay = 1000; // 공격 딜레이 (예: 0.2초 후 super.attack 호출)
+        this.attackDelay = 350; // 공격 딜레이 (예: 0.2초 후 super.attack 호출)
+        //무기 크기 
+        this.meleeWeaponWidth = 30;  // 기본 너비
+        this.meleeWeaponHeight = 30; // 기본 높이
+        this.meleeWeaponOffsetX = 60; // 예: 오른쪽으로 10픽셀 이동
+        this.meleeWeaponOffsetY = -20; // 예: 위로 20픽셀 이동
+        // 무기 위치 오프셋 설정
+        this.meleeWeaponPositionOffsetX = 25; // 예: 오른쪽으로 15픽셀 이동 (기본값 10 대신)
+        this.meleeWeaponPositionOffsetY = 0; // 예: 위로 10픽셀 이동
+
+        this.meleeWeapon.setWeaponSize(this.meleeWeaponWidth, this.meleeWeaponHeight); // 크기 업데이트
+        this.meleeWeapon.setWeaponOffset(this.meleeWeaponOffsetX, this.meleeWeaponOffsetY);
+        this.meleeWeapon.setPositionOffset(this.meleeWeaponPositionOffsetX, this.meleeWeaponPositionOffsetY);
     }
 
     update(time, delta) {
