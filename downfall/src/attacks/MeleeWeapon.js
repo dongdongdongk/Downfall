@@ -2,17 +2,17 @@ import Phaser from "phaser";
 // import EffectManager from "../effects/EffectManager";
 
 class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, animName) {
-        super(scene, x, y, animName)
+    constructor(scene, x, y) {
+        super(scene, x, y)
 
         scene.add.existing(this)
         scene.physics.add.existing(this)
 
         this.damage = 20;
         this.attackSpeed = 1000;
-        this.animName = animName
         this.wielder = null;
-
+        
+        this.setVisible(false); // 스프라이트가 보이지 않도록 설정
         this.setOrigin(0.5, 1)
         this.setDepth(10)
         this.activateWeapon(false)
@@ -30,24 +30,31 @@ class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
     }
 
     preUpdate(time, delta) {
-        super.preUpdate(time, delta)
-        if(!this.active) {
-            return
+        super.preUpdate(time, delta);
+        if (!this.active || !this.wielder) {
+            return;
         }
-
-        if(this.wielder.lastDirection === Phaser.Physics.Arcade.FACING_RIGHT) {
-            this.setFlipX(false)
-            this.body.reset(this.wielder.x + 10, this.wielder.y)
-        }
-        else {
-            this.setFlipX(true)
-            this.body.reset(this.wielder.x - 10, this.wielder.y)
-        }
+        // 방향 계산은 swing에서 처리하므로 여기서는 위치만 유지
+        this.body.reset(this.wielder.x + (this.flipX ? -10 : 10), this.wielder.y);
     }
 
-    swing(wielder) {
+    swing(wielder, player, attackDelay) {
         this.wielder = wielder;
-        this.activateWeapon(true); // 무기 활성화
+        if (player) {
+            const wielderX = wielder.x;
+            const playerX = player.x;
+            if (playerX > wielderX) {
+                this.setFlipX(false); // 플레이어가 오른쪽에 있음
+            } else {
+                this.setFlipX(true); // 플레이어가 왼쪽에 있음
+            }
+        }
+
+        // attackDelay 후에 무기 활성화
+        setTimeout(() => {
+            this.activateWeapon(true);
+            console.log("MeleeWeapon activated after delay:", attackDelay);
+        }, attackDelay);
     }
 
     deliversHit(target) {
