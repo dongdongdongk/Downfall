@@ -30,7 +30,7 @@ class Orc extends Enemy {
         this.meleeWeaponPositionOffsetY = 0; // 예: 위로 10픽셀 이동
 
         // MeleeWeapon에 바운스 값 추가
-        this.meleeWeaponBounceVelocity = 300;
+        this.meleeWeaponBounceVelocity = 100;
 
         this.meleeWeapon.setWeaponSize(this.meleeWeaponWidth, this.meleeWeaponHeight); // 크기 업데이트
         this.meleeWeapon.setWeaponOffset(this.meleeWeaponOffsetX, this.meleeWeaponOffsetY);

@@ -87,7 +87,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.bounceOff(source, bounceVelocity); // 수정된 bounceOff 호출
         const hitAnim = this.playDamageTween();
 
-        this.scene.time.delayedCall(800, () => {
+        this.scene.time.delayedCall(500, () => {
             this.hasBeenHit = false;
             hitAnim.stop();
             this.clearTint();
