@@ -21,6 +21,7 @@ class Play extends Phaser.Scene {
         this.createPlayerColliders(player, {
             colliders: {
                 platformsColliders: layers.test_layer,
+                meleeWeapons: enemies.getMeleeWeapons(), // MeleeWeapon 충돌 추가
             },
         });
 
@@ -66,12 +67,21 @@ class Play extends Phaser.Scene {
     createPlayerColliders(player, { colliders }) {
         player
             .addColliders(colliders.platformsColliders)
+            .addOverlap(colliders.meleeWeapons, this.onMeleeWeaponHit, null, this);
     }
 
     createEnemyColliders(enemies, { colliders }) {
         enemies
             .addColliders(colliders.platformsColliders)
             .addColliders(colliders.player, this.onPlayerCollision)
+    }
+
+    // MeleeWeapon과 플레이어 충돌 시 호출
+    onMeleeWeaponHit(player, meleeWeapon) {
+        if (meleeWeapon.active) { // 무기가 활성화된 상태에서만 데미지 적용
+            player.takesHit(meleeWeapon); // 플레이어 피격 처리
+            console.log("Player hit by melee weapon!", player.health);
+        }
     }
 
 

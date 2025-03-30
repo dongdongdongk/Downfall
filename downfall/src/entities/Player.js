@@ -16,6 +16,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
 
     init() {
+        this.hasBeenHit = false;
+        this.bounceVelocity = 200;
         this.gravity = 900;
         this.playerSpeed = 200;
         this.jumpCount = 0;
@@ -24,7 +26,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.jumpSpeed = -350;
         this.isSliding = false;
         this.lastDirection = Phaser.Physics.Arcade.FACING_RIGHT;
-
         this.body.setGravityY(500);
         this.setCollideWorldBounds(true);
         this.cursors = this.scene.input.keyboard.createCursorKeys();
@@ -71,6 +72,46 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         if (onFloor) {
             this.jumpCount = 0;
         }
+    }
+
+    takesHit(source) {
+        if (this.hasBeenHit) {
+            return;
+        }
+
+        this.health -= source.damage || 0;
+        console.log("Player got hit, health:", this.health);
+
+        this.hasBeenHit = true;
+        const bounceVelocity = source.bounceVelocity || this.bounceVelocity; // MeleeWeapon에서 값 가져오기
+        this.bounceOff(source, bounceVelocity); // 수정된 bounceOff 호출
+        const hitAnim = this.playDamageTween();
+
+        this.scene.time.delayedCall(800, () => {
+            this.hasBeenHit = false;
+            hitAnim.stop();
+            this.clearTint();
+        });
+    }
+
+    playDamageTween() {
+        return this.scene.tweens.add({
+            targets: this,
+            duration: 50,
+            repeat: -1,
+            tint: 0xff0000,
+            yoyo: true,
+        });
+    }
+
+    bounceOff(source, bounceVelocity) {
+        // source와 플레이어의 상대적 위치로 방향 결정
+        const direction = source.x < this.x ? 1 : -1; // source가 왼쪽에 있으면 오른쪽(1), 오른쪽에 있으면 왼쪽(-1)
+        const xVelocity = bounceVelocity * direction;
+        const yVelocity = -bounceVelocity; // 항상 위로 튕김
+
+        this.setVelocity(xVelocity, yVelocity);
+        console.log(`Bounce direction: ${direction}, X: ${xVelocity}, Y: ${yVelocity}`);
     }
 
 }

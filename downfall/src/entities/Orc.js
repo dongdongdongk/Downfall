@@ -9,8 +9,8 @@ class Orc extends Enemy {
 
     init() {
         super.init();
-        this.setSize(20, 45);
-        this.setOffset(40, 50);
+        this.setSize(20, 50);
+        this.setOffset(40, 45);
         this.setScale(1);
         this.attackRange = 50; // 공격 범위 (픽셀 단위)
         this.attackAnimKey = 'orc-attack';
@@ -19,6 +19,7 @@ class Orc extends Enemy {
         this.attackCooldown = 600; // 공격 쿨다운 (1초)
         this.lastAttackTime = 0; // 마지막 공격 시간
         this.attackDelay = 350; // 공격 딜레이 (예: 0.2초 후 super.attack 호출)
+        this.health = 40; // 체력
         //무기 크기 
         this.meleeWeaponWidth = 30;  // 기본 너비
         this.meleeWeaponHeight = 30; // 기본 높이
@@ -28,9 +29,15 @@ class Orc extends Enemy {
         this.meleeWeaponPositionOffsetX = 25; // 예: 오른쪽으로 15픽셀 이동 (기본값 10 대신)
         this.meleeWeaponPositionOffsetY = 0; // 예: 위로 10픽셀 이동
 
+        // MeleeWeapon에 바운스 값 추가
+        this.meleeWeaponBounceVelocity = 300;
+
         this.meleeWeapon.setWeaponSize(this.meleeWeaponWidth, this.meleeWeaponHeight); // 크기 업데이트
         this.meleeWeapon.setWeaponOffset(this.meleeWeaponOffsetX, this.meleeWeaponOffsetY);
         this.meleeWeapon.setPositionOffset(this.meleeWeaponPositionOffsetX, this.meleeWeaponPositionOffsetY);
+
+        // MeleeWeapon에 바운스 값 설정
+        this.meleeWeapon.bounceVelocity = this.meleeWeaponBounceVelocity;
     }
 
     update(time, delta) {

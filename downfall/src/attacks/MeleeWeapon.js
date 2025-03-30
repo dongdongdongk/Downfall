@@ -12,6 +12,8 @@ class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
         this.wielder = null;
         this.animKey = animKey;
 
+        this.bounceVelocity = 200; // 기본 바운스 값
+
         // 크기 설정
         this.weaponWidth = width;   // 무기의 너비
         this.weaponHeight = height; // 무기의 높이
