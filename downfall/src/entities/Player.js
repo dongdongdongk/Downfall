@@ -106,22 +106,31 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.hasBeenHit) {
             return;
         }
+        
+        let damageTaken = false;
+
         if (this.isDefending) {
             const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
             this.bounceOff(source, bounceVelocity);
             // flipX가 false면 오른쪽, true면 왼쪽을 보고 있음
             const attackFromRight = source.x > this.x;
-            if (!this.flipX && !attackFromRight) return; // 오른쪽을 보고 있고 왼쪽에서 공격
-            if (this.flipX && attackFromRight) return;   // 왼쪽을 보고 있고 오른쪽에서 공격
+            if (this.flipX && !attackFromRight) return; // 오른쪽을 보고 있고 왼쪽에서 공격
+            if (!this.flipX && attackFromRight) return;   // 왼쪽을 보고 있고 오른쪽에서 공격
         }
 
         this.health -= source.damage || 0;
+        damageTaken = true;
         console.log("Player got hit, health:", this.health);
 
         this.hasBeenHit = true;
         const bounceVelocity = source.bounceVelocity || this.bounceVelocity; // MeleeWeapon에서 값 가져오기
         this.bounceOff(source, bounceVelocity); // 수정된 bounceOff 호출
         const hitAnim = this.playDamageTween();
+
+        // 카메라 흔들림 효과 (데미지를 입었을 때만)
+        if (damageTaken) {
+            this.scene.cameras.main.shake(200, 0.005); // 0.2초 동안, 강도 0.01
+        }
 
         this.scene.time.delayedCall(500, () => {
             this.hasBeenHit = false;
