@@ -12,7 +12,7 @@ class Orc extends Enemy {
         this.setSize(20, 50);
         this.setOffset(40, 45);
         this.setScale(1);
-        this.attackRange = 50; // 공격 범위 (픽셀 단위)
+        this.attackRange = 40; // 공격 범위 (픽셀 단위)
         this.attackAnimKey = 'orc-attack';
         this.attackDuration = 500; // 공격 지속 시간 (0.5초)
         this.attackEndTime = 0; // 공격이 끝나는 시간

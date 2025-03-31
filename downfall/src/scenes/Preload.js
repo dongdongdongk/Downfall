@@ -21,6 +21,10 @@ class Preload extends Phaser.Scene {
         this.load.spritesheet('orc-attack', 'assets/enemy/orc/orc_attack.png', { frameWidth: 96, frameHeight: 96 });
         this.load.spritesheet('orc-walk', 'assets/enemy/orc/orc_walk.png', { frameWidth: 96, frameHeight: 96 });
 
+        this.load.spritesheet('run', 'assets/player/run.png', { frameWidth: 120, frameHeight: 80 });
+        this.load.spritesheet('idle', 'assets/player/idle.png', { frameWidth: 120, frameHeight: 80 });
+        this.load.spritesheet('jump', 'assets/player/jump.png', { frameWidth: 120, frameHeight: 80 });
+
 
         this.load.spritesheet('blood', 
             'assets/effects/blood.png', 

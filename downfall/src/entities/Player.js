@@ -1,14 +1,17 @@
 import Phaser from "phaser";
 import collidable from "../mixins/collidable";
+import initAnimations from "./anims/PlayerAnims";
+
 
 class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, x, y, "test_player");
+        super(scene, x, y, "idle");
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
         Object.assign(this, collidable);
+        
 
         this.init();
         this.initEvents();
@@ -21,20 +24,25 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.playerSpeed = 200;
         this.jumpCount = 0;
         this.consecutiveJumps = 1;
-        this.body.setSize(20, 36);
+        this.body.setSize(18, 36);
         this.jumpSpeed = -350;
         this.isSliding = false;
         this.lastDirection = Phaser.Physics.Arcade.FACING_RIGHT;
         this.body.setGravityY(500);
         this.setCollideWorldBounds(true);
+        
 
         this.cursors = this.scene.input.keyboard.createCursorKeys();
         this.defenseKey = this.scene.input.keyboard.addKey(
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
+        this.setScale(1.4);
+        this.body.setOffset(46, 45);
         this.setOrigin(0.5, 1);
         this.health = 100;
+
+        initAnimations(this.scene.anims);
 
         // 방어 관련 변수수
         this.isDefending = false; // 방어 상태
@@ -62,12 +70,16 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.lastDirection = Phaser.Physics.Arcade.FACING_LEFT;
             this.setVelocityX(-this.playerSpeed);
             this.setFlipX(true);
+            this.body.setOffset(56, 45); // 왼쪽 방향 오프셋
         } else if (right.isDown) {
             this.lastDirection = Phaser.Physics.Arcade.FACING_RIGHT;
             this.setVelocityX(this.playerSpeed);
             this.setFlipX(false);
+            this.body.setOffset(46, 45);
         } else {
             this.setVelocityX(0);
+            // 정지 시 마지막 방향에 따라 오프셋 유지
+            this.body.setOffset(this.flipX ? 56 : 46, 45);
         }
 
         if (
@@ -82,6 +94,12 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.jumpCount = 0;
         }
 
+        onFloor
+        ? this.body.velocity.x !== 0
+            ? this.play("run", true)
+            : this.play("idle", true)
+        : this.play("jump", true);
+
         // 'F' 키로 방어 활성화
         if (
             Phaser.Input.Keyboard.JustDown(this.defenseKey) &&
@@ -95,6 +113,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.isDefending = false;
             this.setTint(0xffffff); // 방어 끝나면 원래 색상으로 (시각적 피드백 제거)
         }
+        
     }
 
     activateDefense(time) {
