@@ -108,30 +108,47 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         }
         
         let damageTaken = false;
-
+    
         if (this.isDefending) {
             const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
             this.bounceOff(source, bounceVelocity);
+    
             // flipX가 false면 오른쪽, true면 왼쪽을 보고 있음
             const attackFromRight = source.x > this.x;
-            if (this.flipX && !attackFromRight) return; // 오른쪽을 보고 있고 왼쪽에서 공격
-            if (!this.flipX && attackFromRight) return;   // 왼쪽을 보고 있고 오른쪽에서 공격
+    
+            // 방어 성공 조건: 방향이 일치해야 함
+            if (!this.flipX && !attackFromRight) {
+                // 오른쪽을 보고 있고 왼쪽에서 공격 -> 방어 실패
+                this.health -= source.damage || 0;
+                damageTaken = true;
+                source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
+            } else if (this.flipX && attackFromRight) {
+                // 왼쪽을 보고 있고 오른쪽에서 공격 -> 방어 실패
+                this.health -= source.damage || 0;
+                damageTaken = true;
+                source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
+            } else {
+                // 방향이 일치 -> 방어 성공
+                source.deliversHit && source.deliversHit(this, true); // 방어 이펙트
+                return; // 방어 성공 시 종료
+            }
+        } else {
+            // 방어 중이 아닌 경우
+            this.health -= source.damage || 0;
+            damageTaken = true;
+            source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
         }
-
-        this.health -= source.damage || 0;
-        damageTaken = true;
-        console.log("Player got hit, health:", this.health);
-
+    
+        // 이후 데미지 처리 로직 (방어 실패 시만 실행)
         this.hasBeenHit = true;
-        const bounceVelocity = source.bounceVelocity || this.bounceVelocity; // MeleeWeapon에서 값 가져오기
-        this.bounceOff(source, bounceVelocity); // 수정된 bounceOff 호출
+        const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
+        this.bounceOff(source, bounceVelocity);
         const hitAnim = this.playDamageTween();
-
-        // 카메라 흔들림 효과 (데미지를 입었을 때만)
+    
         if (damageTaken) {
-            this.scene.cameras.main.shake(200, 0.005); // 0.2초 동안, 강도 0.01
+            this.scene.cameras.main.shake(200, 0.005);
         }
-
+    
         this.scene.time.delayedCall(500, () => {
             this.hasBeenHit = false;
             hitAnim.stop();

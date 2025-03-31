@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import EffectManager from "../effects/EffectManager ";
 
 class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, animKey, width = 20, height = 40, offsetX = 0, offsetY = 0, positionOffsetX = 10, positionOffsetY = 0) {
@@ -27,6 +28,8 @@ class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
         this.setVisible(false);
         this.setOrigin(0.5, 1);
         this.setDepth(10);
+
+        this.effectManager = new EffectManager(this.scene);
 
         // 물리 바디 크기 설정
         this.body.setSize(this.weaponWidth, this.weaponHeight);
@@ -60,9 +63,16 @@ class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
         console.log(`MeleeWeapon activated for ${this.animKey} with size ${this.weaponWidth}x${this.weaponHeight} after delay: ${attackDelay}`);
     }
 
-    deliversHit(target) {
-        const impactPosition = { x: this.x, y: this.getCenter().y };
-        // this.effectManager.playEffectOn('hit-effect', target, impactPosition);
+    deliversHit(target, isDefending) {
+        const impactPosition = { x: this.getCenter().x, y: this.getCenter().y - 20 };
+        const effectOptions = { flipX: this.flipX };
+    
+        if (isDefending) {
+            this.effectManager.playEffectOn('block', target, impactPosition, effectOptions);
+            return;
+        }
+    
+        this.effectManager.playEffectOn('blood', target, impactPosition, effectOptions);
         this.body.checkCollision.none = true;
     }
 

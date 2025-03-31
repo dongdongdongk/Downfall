@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import Player from '../entities/Player'
 import Enemies from "../groups/Enemies";
+import initAnims from "../anims";
 
 class Play extends Phaser.Scene {
     constructor(config) {
@@ -17,6 +18,7 @@ class Play extends Phaser.Scene {
         const enemies = this.createEnemies(layers.enemySpawns, layers.test_layer, player);
         this.createBackgrounds(map);
         this.setupFollowupCameraOn(player);
+        initAnims(this.anims);
 
         this.createPlayerColliders(player, {
             colliders: {

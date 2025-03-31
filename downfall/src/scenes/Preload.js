@@ -22,6 +22,17 @@ class Preload extends Phaser.Scene {
         this.load.spritesheet('orc-walk', 'assets/enemy/orc/orc_walk.png', { frameWidth: 96, frameHeight: 96 });
 
 
+        this.load.spritesheet('blood', 
+            'assets/effects/blood.png', 
+            { frameWidth: 110, frameHeight: 93 }
+        );
+
+        this.load.spritesheet('block', 
+            'assets/effects/block.png', 
+            { frameWidth: 64, frameHeight: 64 }
+        );
+
+
 
         this.load.once('complete', () => {
             this.startGame()
