@@ -37,6 +37,7 @@ class SpriteEffect extends Phaser.GameObjects.Sprite {
             this.flipX = options.flipX; // 방향 설정
         }
         this.play(this.effectName);
+        this.setScale(0.7);
         this.placeEffect();
     }
 }

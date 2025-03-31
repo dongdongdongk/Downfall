@@ -39,8 +39,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         // 방어 관련 변수수
         this.isDefending = false; // 방어 상태
         this.facingRight = true; // 바라보는 방향 (true: 오른쪽, false: 왼쪽)
-        this.defenseDuration = 500; // 방어 지속 시간 (0.5초)
-        this.defenseCooldown = 1000; // 방어 쿨다운 (1초)
+        this.defenseDuration = 1000; // 방어 지속 시간 (0.5초)
+        this.defenseCooldown = 1200; // 방어 쿨다운 (1초)
         this.lastDefenseTime = 0; // 마지막 방어 시간
     }
 
@@ -132,9 +132,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
                 source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
             } else {
                 // 방향이 일치 -> 방어 성공
-                source.deliversHit && source.deliversHit(this, true); // 방어 이펙트
                 this.scene.cameras.main.shake(200, 0.001);
-
+                source.deliversHit && source.deliversHit(this, true); // 방어 이펙트
                 return; // 방어 성공 시 종료
             }
         } else {

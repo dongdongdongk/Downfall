@@ -3,9 +3,25 @@ import { Scale } from "phaser"
 export default anims => {
 
     anims.create({
-        key: 'blood',
+        key: 'blood3',
         frames: anims.generateFrameNumbers('blood', { start: 28, end: 31 }),
         frameRate: 10,
+        repeat: 0,
+    })
+
+
+    anims.create({
+        key: 'blood2',
+        frames: anims.generateFrameNumbers('blood', { start: 69, end: 76 }),
+        frameRate: 15,
+        repeat: 0,
+    })
+
+
+    anims.create({
+        key: 'blood',
+        frames: anims.generateFrameNumbers('blood', { start: 111, end: 119 }),
+        frameRate: 15,
         repeat: 0,
     })
 

@@ -72,7 +72,10 @@ class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
             return;
         }
     
-        this.effectManager.playEffectOn('blood', target, impactPosition, effectOptions);
+            // blood, blood2, blood3 배열에서 랜덤 선택
+        const effects = ['blood', 'blood2', 'blood3'];
+        const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+        this.effectManager.playEffectOn(randomEffect, target, impactPosition, effectOptions);
         this.body.checkCollision.none = true;
     }
 
