@@ -64,7 +64,7 @@ class MeleeWeapon extends Phaser.Physics.Arcade.Sprite {
     }
 
     deliversHit(target, isDefending) {
-        const impactPosition = { x: this.getCenter().x, y: this.getCenter().y - 20 };
+        const impactPosition = { x: this.x -20, y: this.getCenter().y -20 };
         const effectOptions = { flipX: this.flipX };
     
         if (isDefending) {

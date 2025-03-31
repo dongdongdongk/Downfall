@@ -27,11 +27,15 @@ class Preload extends Phaser.Scene {
             { frameWidth: 110, frameHeight: 93 }
         );
 
+        // this.load.spritesheet('block', 
+        //     'assets/effects/block.png', 
+        //     { frameWidth: 64, frameHeight: 64 }
+        // );
+
         this.load.spritesheet('block', 
             'assets/effects/block.png', 
-            { frameWidth: 64, frameHeight: 64 }
+            { frameWidth: 96, frameHeight: 96 }
         );
-
 
 
         this.load.once('complete', () => {

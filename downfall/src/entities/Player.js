@@ -14,7 +14,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.initEvents();
     }
 
-
     init() {
         this.hasBeenHit = false;
         this.bounceVelocity = 200;
@@ -28,20 +27,21 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.lastDirection = Phaser.Physics.Arcade.FACING_RIGHT;
         this.body.setGravityY(500);
         this.setCollideWorldBounds(true);
-        
+
         this.cursors = this.scene.input.keyboard.createCursorKeys();
-        this.defenseKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-        
+        this.defenseKey = this.scene.input.keyboard.addKey(
+            Phaser.Input.Keyboard.KeyCodes.F
+        );
+
         this.setOrigin(0.5, 1);
         this.health = 100;
 
         // 방어 관련 변수수
         this.isDefending = false; // 방어 상태
-        this.facingRight = true;  // 바라보는 방향 (true: 오른쪽, false: 왼쪽)
+        this.facingRight = true; // 바라보는 방향 (true: 오른쪽, false: 왼쪽)
         this.defenseDuration = 500; // 방어 지속 시간 (0.5초)
         this.defenseCooldown = 1000; // 방어 쿨다운 (1초)
         this.lastDefenseTime = 0; // 마지막 방어 시간
-
     }
 
     initEvents() {
@@ -83,7 +83,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         // 'F' 키로 방어 활성화
-        if (Phaser.Input.Keyboard.JustDown(this.defenseKey) && time > this.lastDefenseTime + this.defenseCooldown) {
+        if (
+            Phaser.Input.Keyboard.JustDown(this.defenseKey) &&
+            time > this.lastDefenseTime + this.defenseCooldown
+        ) {
             this.activateDefense(time);
         }
 
@@ -106,16 +109,16 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.hasBeenHit) {
             return;
         }
-        
+
         let damageTaken = false;
-    
+
         if (this.isDefending) {
             const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
             this.bounceOff(source, bounceVelocity);
-    
+
             // flipX가 false면 오른쪽, true면 왼쪽을 보고 있음
             const attackFromRight = source.x > this.x;
-    
+
             // 방어 성공 조건: 방향이 일치해야 함
             if (!this.flipX && !attackFromRight) {
                 // 오른쪽을 보고 있고 왼쪽에서 공격 -> 방어 실패
@@ -130,6 +133,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             } else {
                 // 방향이 일치 -> 방어 성공
                 source.deliversHit && source.deliversHit(this, true); // 방어 이펙트
+                this.scene.cameras.main.shake(200, 0.001);
+
                 return; // 방어 성공 시 종료
             }
         } else {
@@ -138,17 +143,17 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             damageTaken = true;
             source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
         }
-    
+
         // 이후 데미지 처리 로직 (방어 실패 시만 실행)
         this.hasBeenHit = true;
         const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
         this.bounceOff(source, bounceVelocity);
         const hitAnim = this.playDamageTween();
-    
+
         if (damageTaken) {
             this.scene.cameras.main.shake(200, 0.005);
         }
-    
+
         this.scene.time.delayedCall(500, () => {
             this.hasBeenHit = false;
             hitAnim.stop();
@@ -173,9 +178,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         const yVelocity = -bounceVelocity; // 항상 위로 튕김
 
         this.setVelocity(xVelocity, yVelocity);
-        console.log(`Bounce direction: ${direction}, X: ${xVelocity}, Y: ${yVelocity}`);
+        console.log(
+            `Bounce direction: ${direction}, X: ${xVelocity}, Y: ${yVelocity}`
+        );
     }
-
 }
 
 export default Player;

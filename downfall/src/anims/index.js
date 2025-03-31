@@ -1,3 +1,5 @@
+import { Scale } from "phaser"
+
 export default anims => {
 
     anims.create({
@@ -7,11 +9,18 @@ export default anims => {
         repeat: 0,
     })
 
+    // anims.create({
+    //     key: 'block',
+    //     frames: anims.generateFrameNumbers('block', { start: 28, end: 41 }),
+    //     frameRate: 40,
+    //     repeat: 0,
+    // })
+
     anims.create({
         key: 'block',
-        frames: anims.generateFrameNumbers('block', { start: 28, end: 41 }),
-        frameRate: 25,
+        frames: anims.generateFrameNumbers('block', { start: 0, end: 23 }),
+        frameRate: 40,
+        Scale: 0.1,
         repeat: 0,
     })
-
 }
