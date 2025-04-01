@@ -50,4 +50,11 @@ export default anims => {
         repeat: 0,
     })
 
+    anims.create({
+        key: 'guardSuccess2',
+        frames: anims.generateFrameNumbers('attack', { start: 2, end: 3 }),
+        frameRate: 15,
+        repeat: 0,
+    })
+
 }

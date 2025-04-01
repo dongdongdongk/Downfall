@@ -3,7 +3,6 @@ import collidable from "../mixins/collidable";
 import initAnimations from "./anims/PlayerAnims";
 import anims from "../mixins/anims";
 
-
 class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
         super(scene, x, y, "idle");
@@ -13,8 +12,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
         Object.assign(this, collidable);
         Object.assign(this, anims);
-        
-
 
         this.init();
         this.initEvents();
@@ -34,14 +31,13 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.body.setGravityY(500);
         this.setCollideWorldBounds(true);
 
-
         this.cursors = this.scene.input.keyboard.createCursorKeys();
         this.defenseKey = this.scene.input.keyboard.addKey(
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
         this.setScale(1.4);
-        this.setDepth(3)
+        this.setDepth(3);
         this.body.setOffset(46, 45);
         this.setOrigin(0.5, 1);
         this.health = 100;
@@ -52,8 +48,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.isDefending = false; // 방어 상태
         this.facingRight = true; // 바라보는 방향 (true: 오른쪽, false: 왼쪽)
         this.defenseDuration = 1000; // 방어 지속 시간 (0.5초)
-        this.defenseCooldown = 1200; // 방어 쿨다운 (1초)
+        this.defenseCooldown = 2000; // 방어 쿨다운 (1초)
         this.lastDefenseTime = 0; // 마지막 방어 시간
+        this.guardTween = null;
     }
 
     initEvents() {
@@ -63,6 +60,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     update(time) {
         if (this.hasBeenHit || this.isSliding || !this.body) {
             return;
+        }
+        if(!this.isDefending) {
+            this.clearTint();
         }
 
         const { left, right, space } = this.cursors;
@@ -88,7 +88,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
         if (
             isSpaceJustDown &&
-            (onFloor || this.jumpCount < this.consecutiveJumps && !this.isDefending)
+            (onFloor || (this.jumpCount < this.consecutiveJumps && !this.isDefending))
         ) {
             this.setVelocityY(this.jumpSpeed);
             this.jumpCount++;
@@ -98,12 +98,15 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.jumpCount = 0;
         }
 
-        if (this.isPlayingAnims("guardSuccess")) {
+        if (this.isPlayingAnims("guardSuccess") || this.isPlayingAnims("guardSuccess2")) {
             return;
         }
 
         // 방어 로직
-        if (this.defenseKey.isDown && time > this.lastDefenseTime + this.defenseCooldown) {
+        if (
+            this.defenseKey.isDown &&
+            time > this.lastDefenseTime + this.defenseCooldown
+        ) {
             this.activateDefense(time);
         } else if (this.defenseKey.isUp && this.isDefending) {
             this.deactivateDefense();
@@ -124,14 +127,25 @@ class Player extends Phaser.Physics.Arcade.Sprite {
                 this.play("fall", true);
             }
         }
-
     }
 
     activateDefense(time) {
         if (!this.isDefending) {
             console.log("Player is defending!");
             this.isDefending = true;
-            this.lastDefenseTime = time; // 방어 시작 시점 기록 (쿨다운용)
+            this.lastDefenseTime = time;
+
+            // 방어 지속 시간 동안 깜빡이도록 트윈 시작
+            if (!this.guardTween || !this.guardTween.isPlaying()) {
+                this.guardTween = this.playGuardTween();
+            }
+
+            // 방어 지속 시간 후 자동 해제
+            this.scene.time.delayedCall(this.defenseDuration, () => {
+                if (this.isDefending) {
+                    this.deactivateDefense();
+                }
+            });
         }
     }
 
@@ -141,66 +155,55 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     takesHit(source) {
-        if (this.hasBeenHit) {
-            return;
-        }
+        if (this.hasBeenHit) return;
 
         let damageTaken = false;
+        const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
 
         if (this.isDefending) {
-            const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
+            // 방어 중이면 무조건 방어 성공
             this.bounceOff(source, bounceVelocity);
+            this.scene.cameras.main.shake(200, 0.003);
+            source.deliversHit && source.deliversHit(this, true);
 
-            // flipX가 false면 오른쪽, true면 왼쪽을 보고 있음
-            const attackFromRight = source.x > this.x;
-
-            // 방어 성공 조건: 방향이 일치해야 함
-            if (!this.flipX && !attackFromRight) {
-                // 오른쪽을 보고 있고 왼쪽에서 공격 -> 방어 실패
-                this.health -= source.damage || 0;
-                damageTaken = true;
-                source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
-            } else if (this.flipX && attackFromRight) {
-                // 왼쪽을 보고 있고 오른쪽에서 공격 -> 방어 실패
-                this.health -= source.damage || 0;
-                damageTaken = true;
-                source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
+            // 50% 확률로 guardSuccess 또는 guardSuccess2 재생
+            const randomChoice = Phaser.Math.Between(0, 1); // 0 또는 1 랜덤 선택
+            if (randomChoice === 0) {
+                console.log("Playing guardSuccess");
+                this.play("guardSuccess", true);
             } else {
-                // 방어 성공
-                this.scene.cameras.main.shake(200, 0.001);
-                source.deliversHit && source.deliversHit(this, true);
-                this.setTint(0xffffff); // 하얀색 번쩍임
-                this.play("guardSuccess", true); // guardSuccess 애니메이션 재생
-                this.scene.time.delayedCall(500, () => {
-                    this.clearTint(); // 원래 색상으로 복귀
-                    if (this.isDefending) {
-                        this.play("guard", true); // 방어 중이면 guard로 돌아감
-                    }
-                });
-                return;
+                console.log("Playing guardSuccess2");
+                this.play("guardSuccess2", true);
             }
+            this.scene.time.delayedCall(500, () => {
+                // this.clearTint();
+                if (this.isDefending) this.play("guard", true);
+            });
+            this.hasBeenHit = true; // 방어 성공 후 즉시 hasBeenHit 설정
+            this.scene.time.delayedCall(200, () => {
+                this.hasBeenHit = false; // 500ms 후 해제
+            });
+            return; // 방어 성공 시 바로 종료
         } else {
-            // 방어 중이 아닌 경우
-            this.health -= source.damage || 0;
+            // 방어 중이 아니면 데미지 적용
+            this.health -= source.damage || 10;
             damageTaken = true;
-            source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
+            source.deliversHit && source.deliversHit(this, false);
+            this.scene.cameras.main.flash(100, 255, 0, 0);
         }
 
-        // 이후 데미지 처리 로직 (방어 실패 시만 실행)
         this.hasBeenHit = true;
-        const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
         this.bounceOff(source, bounceVelocity);
         this.setTexture("hit");
         const hitAnim = this.playDamageTween();
 
-        if (damageTaken) {
-            this.scene.cameras.main.shake(200, 0.005);
-        }
+        if (damageTaken) this.scene.cameras.main.shake(200, 0.005);
 
         this.scene.time.delayedCall(500, () => {
             this.hasBeenHit = false;
             hitAnim.stop();
             this.clearTint();
+            this.setAlpha(1);
         });
     }
 
@@ -211,6 +214,24 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             repeat: -1,
             tint: 0xff0000,
             yoyo: true,
+        });
+    }
+
+    playGuardTween() {
+        const repeatCount = Math.floor(this.defenseDuration / 200);
+        console.log("Guard tween started with tint: 0xffffff and alpha");
+        return this.scene.tweens.add({
+            targets: this,
+            duration: 100, // 단일 깜빡임 시간
+            repeat: repeatCount - 1, // 방어 지속 시간에 맞춘 반복 횟수
+            // tint: 0x078afc, // 하얀색
+            alpha: { from: 1, to: 0.5 }, // 투명도 1 -> 0.5 -> 1
+            yoyo: true,
+            onComplete: () => {
+                this.clearTint();
+                this.setAlpha(1); // 트윈 완료 시 투명도와 색상 초기화
+                console.log("Guard tween completed");
+            }
         });
     }
 
