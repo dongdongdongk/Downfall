@@ -23,9 +23,9 @@ export default anims => {
 
 
     anims.create({
-        key: 'throw',
-        frames: anims.generateFrameNumbers('player-throw', { start: 0, end: 7 }), 
-        frameRate: 14, 
+        key: 'fall',
+        frames: anims.generateFrameNumbers('fall', { start: 0, end: 2 }), 
+        frameRate: 5, 
         repeat: 0,
     });
 
@@ -33,6 +33,20 @@ export default anims => {
         key: 'slide',
         frames: anims.generateFrameNumbers('player-slide-sheet', { start: 0, end: 2 }),
         frameRate: 20,
+        repeat: 0,
+    })
+
+    anims.create({
+        key: 'guard',
+        frames: anims.generateFrameNumbers('guard', { start: 1, end: 1 }),
+        frameRate: 2,
+        repeat: -1,
+    })
+
+    anims.create({
+        key: 'guardSuccess',
+        frames: anims.generateFrameNumbers('guard', { start: 3, end: 5 }),
+        frameRate: 15,
         repeat: 0,
     })
 

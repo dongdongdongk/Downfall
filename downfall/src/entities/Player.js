@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import collidable from "../mixins/collidable";
 import initAnimations from "./anims/PlayerAnims";
+import anims from "../mixins/anims";
 
 
 class Player extends Phaser.Physics.Arcade.Sprite {
@@ -11,7 +12,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
 
         Object.assign(this, collidable);
+        Object.assign(this, anims);
         
+
 
         this.init();
         this.initEvents();
@@ -25,12 +28,12 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.jumpCount = 0;
         this.consecutiveJumps = 1;
         this.body.setSize(18, 36);
-        this.jumpSpeed = -350;
+        this.jumpSpeed = -250;
         this.isSliding = false;
         this.lastDirection = Phaser.Physics.Arcade.FACING_RIGHT;
         this.body.setGravityY(500);
         this.setCollideWorldBounds(true);
-        
+
 
         this.cursors = this.scene.input.keyboard.createCursorKeys();
         this.defenseKey = this.scene.input.keyboard.addKey(
@@ -38,6 +41,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         );
 
         this.setScale(1.4);
+        this.setDepth(3)
         this.body.setOffset(46, 45);
         this.setOrigin(0.5, 1);
         this.health = 100;
@@ -66,12 +70,12 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         // const isUpJustDown = Phaser.Input.Keyboard.JustDown(up);
         const onFloor = this.body.onFloor();
 
-        if (left.isDown) {
+        if (left.isDown && !this.isDefending) {
             this.lastDirection = Phaser.Physics.Arcade.FACING_LEFT;
             this.setVelocityX(-this.playerSpeed);
             this.setFlipX(true);
             this.body.setOffset(56, 45); // 왼쪽 방향 오프셋
-        } else if (right.isDown) {
+        } else if (right.isDown && !this.isDefending) {
             this.lastDirection = Phaser.Physics.Arcade.FACING_RIGHT;
             this.setVelocityX(this.playerSpeed);
             this.setFlipX(false);
@@ -84,7 +88,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
         if (
             isSpaceJustDown &&
-            (onFloor || this.jumpCount < this.consecutiveJumps)
+            (onFloor || this.jumpCount < this.consecutiveJumps && !this.isDefending)
         ) {
             this.setVelocityY(this.jumpSpeed);
             this.jumpCount++;
@@ -94,34 +98,46 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.jumpCount = 0;
         }
 
-        onFloor
-        ? this.body.velocity.x !== 0
-            ? this.play("run", true)
-            : this.play("idle", true)
-        : this.play("jump", true);
+        if (this.isPlayingAnims("guardSuccess")) {
+            return;
+        }
 
-        // 'F' 키로 방어 활성화
-        if (
-            Phaser.Input.Keyboard.JustDown(this.defenseKey) &&
-            time > this.lastDefenseTime + this.defenseCooldown
-        ) {
+        // 방어 로직
+        if (this.defenseKey.isDown && time > this.lastDefenseTime + this.defenseCooldown) {
             this.activateDefense(time);
+        } else if (this.defenseKey.isUp && this.isDefending) {
+            this.deactivateDefense();
         }
 
-        // 방어 상태가 끝났는지 확인
-        if (this.isDefending && time > this.defenseEndTime) {
-            this.isDefending = false;
-            this.setTint(0xffffff); // 방어 끝나면 원래 색상으로 (시각적 피드백 제거)
+        // 애니메이션 처리
+        if (this.isDefending) {
+            this.setVelocityX(0); // 방어 중 이동 멈춤
+            this.play("guard", true); // guard 애니메이션 유지
+        } else if (onFloor) {
+            this.body.velocity.x !== 0
+                ? this.play("run", true)
+                : this.play("idle", true);
+        } else {
+            if (this.body.velocity.y < 0) {
+                this.play("jump", true);
+            } else if (this.body.velocity.y > 0) {
+                this.play("fall", true);
+            }
         }
-        
+
     }
 
     activateDefense(time) {
-        console.log("Player is defending!");
-        this.isDefending = true;
-        this.lastDefenseTime = time;
-        this.defenseEndTime = time + this.defenseDuration;
-        this.setTint(0x00ff00); // 방어 중임을 나타내기 위해 초록색으로 (시각적 피드백)
+        if (!this.isDefending) {
+            console.log("Player is defending!");
+            this.isDefending = true;
+            this.lastDefenseTime = time; // 방어 시작 시점 기록 (쿨다운용)
+        }
+    }
+
+    deactivateDefense() {
+        console.log("Defense deactivated!");
+        this.isDefending = false;
     }
 
     takesHit(source) {
@@ -150,10 +166,18 @@ class Player extends Phaser.Physics.Arcade.Sprite {
                 damageTaken = true;
                 source.deliversHit && source.deliversHit(this, false); // 혈흔 이펙트
             } else {
-                // 방향이 일치 -> 방어 성공
+                // 방어 성공
                 this.scene.cameras.main.shake(200, 0.001);
-                source.deliversHit && source.deliversHit(this, true); // 방어 이펙트
-                return; // 방어 성공 시 종료
+                source.deliversHit && source.deliversHit(this, true);
+                this.setTint(0xffffff); // 하얀색 번쩍임
+                this.play("guardSuccess", true); // guardSuccess 애니메이션 재생
+                this.scene.time.delayedCall(500, () => {
+                    this.clearTint(); // 원래 색상으로 복귀
+                    if (this.isDefending) {
+                        this.play("guard", true); // 방어 중이면 guard로 돌아감
+                    }
+                });
+                return;
             }
         } else {
             // 방어 중이 아닌 경우
@@ -166,6 +190,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.hasBeenHit = true;
         const bounceVelocity = source.bounceVelocity || this.bounceVelocity;
         this.bounceOff(source, bounceVelocity);
+        this.setTexture("hit");
         const hitAnim = this.playDamageTween();
 
         if (damageTaken) {

@@ -24,7 +24,9 @@ class Preload extends Phaser.Scene {
         this.load.spritesheet('run', 'assets/player/run.png', { frameWidth: 120, frameHeight: 80 });
         this.load.spritesheet('idle', 'assets/player/idle.png', { frameWidth: 120, frameHeight: 80 });
         this.load.spritesheet('jump', 'assets/player/jump.png', { frameWidth: 120, frameHeight: 80 });
-
+        this.load.spritesheet('fall', 'assets/player/fall.png', { frameWidth: 120, frameHeight: 80 });
+        this.load.spritesheet('guard', 'assets/player/attack2.png', { frameWidth: 120, frameHeight: 80 });
+        this.load.image("hit", "assets/player/hit.png");
 
         this.load.spritesheet('blood', 
             'assets/effects/blood.png', 

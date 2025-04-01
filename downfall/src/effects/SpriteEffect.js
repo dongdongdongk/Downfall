@@ -38,6 +38,7 @@ class SpriteEffect extends Phaser.GameObjects.Sprite {
         }
         this.play(this.effectName);
         this.setScale(0.7);
+        this.setDepth(50)
         this.placeEffect();
     }
 }
